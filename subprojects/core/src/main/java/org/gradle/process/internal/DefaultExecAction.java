@@ -16,14 +16,11 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.process.BaseExecSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ProcessForkOptions;
 
 import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -32,20 +29,30 @@ import java.util.Map;
  *
  * TODO: We should remove setters and have abstract getters in Gradle 9.0 and configure builder in execute() method.
  */
-public class DefaultExecAction implements ExecAction {
+public abstract class DefaultExecAction implements ExecAction {
 
     private final ClientExecHandleBuilder execHandleBuilder;
-    private boolean ignoreExitValue;
 
     public DefaultExecAction(ClientExecHandleBuilder execHandleBuilder) {
         this.execHandleBuilder = execHandleBuilder;
+        getIgnoreExitValue().convention(false);
     }
 
     @Override
     public ExecResult execute() {
+        if (getStandardInput().isPresent()) {
+            execHandleBuilder.setStandardInput(getStandardInput().get());
+        }
+        if (getStandardOutput().isPresent()) {
+            execHandleBuilder.setStandardOutput(getStandardOutput().get());
+        }
+        if (getErrorOutput().isPresent()) {
+            execHandleBuilder.setErrorOutput(getErrorOutput().get());
+        }
+
         ExecHandle execHandle = execHandleBuilder.build();
         ExecResult execResult = execHandle.start().waitForFinish();
-        if (!isIgnoreExitValue()) {
+        if (!getIgnoreExitValue().get()) {
             execResult.assertNormalExitValue();
         }
         return execResult;
@@ -149,23 +156,6 @@ public class DefaultExecAction implements ExecAction {
     }
 
     @Override
-    public ExecAction setIgnoreExitValue(boolean ignoreExitValue) {
-        this.ignoreExitValue = ignoreExitValue;
-        return this;
-    }
-
-    @Override
-    public boolean isIgnoreExitValue() {
-        return ignoreExitValue;
-    }
-
-    @Override
-    public ExecAction setStandardInput(InputStream inputStream) {
-        execHandleBuilder.setStandardInput(inputStream);
-        return this;
-    }
-
-    @Override
     public ExecAction workingDir(Object dir) {
         execHandleBuilder.setWorkingDir(dir);
         return this;
@@ -194,35 +184,8 @@ public class DefaultExecAction implements ExecAction {
     }
 
     @Override
-    public OutputStream getStandardOutput() {
-        return execHandleBuilder.getStandardOutput();
-    }
-
-    @Override
-    public BaseExecSpec setErrorOutput(OutputStream outputStream) {
-        execHandleBuilder.setErrorOutput(outputStream);
-        return this;
-    }
-
-    @Override
-    public OutputStream getErrorOutput() {
-        return execHandleBuilder.getErrorOutput();
-    }
-
-    @Override
     public List<String> getCommandLine() {
         return execHandleBuilder.getCommandLine();
-    }
-
-    @Override
-    public InputStream getStandardInput() {
-        return execHandleBuilder.getStandardInput();
-    }
-
-    @Override
-    public ExecAction setStandardOutput(OutputStream outputStream) {
-        execHandleBuilder.setStandardOutput(outputStream);
-        return this;
     }
 
     @Override

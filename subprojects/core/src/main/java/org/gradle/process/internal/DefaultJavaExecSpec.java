@@ -39,14 +39,16 @@ import static org.gradle.process.internal.DefaultExecSpec.copyBaseExecSpecTo;
 
 public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaExecSpec, ProcessArgumentsSpec.HasExecutable {
 
-    private boolean ignoreExitValue;
-    private final ProcessStreamsSpec streamsSpec = new ProcessStreamsSpec();
+    private final Property<Boolean> ignoreExitValue;
     private final ProcessArgumentsSpec argumentsSpec = new ProcessArgumentsSpec(this);
 
     private final Property<String> mainClass;
     private final Property<String> mainModule;
     private final ModularitySpec modularity;
     private final ListProperty<String> jvmArguments;
+    private final Property<InputStream> standardInput;
+    private final Property<OutputStream> standardOutput;
+    private final Property<OutputStream> errorOutput;
 
     private final FileCollectionFactory fileCollectionFactory;
     private ConfigurableFileCollection classpath;
@@ -64,6 +66,10 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
         this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         this.fileCollectionFactory = fileCollectionFactory;
         this.classpath = fileCollectionFactory.configurableFiles("classpath");
+        this.ignoreExitValue = objectFactory.property(Boolean.class).convention(false);
+        this.standardInput = objectFactory.property(InputStream.class);
+        this.standardOutput = objectFactory.property(OutputStream.class);
+        this.errorOutput = objectFactory.property(OutputStream.class);
     }
 
     public void copyTo(JavaExecSpec targetSpec) {
@@ -139,47 +145,23 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
     }
 
     @Override
-    public boolean isIgnoreExitValue() {
+    public Property<Boolean> getIgnoreExitValue() {
         return ignoreExitValue;
     }
 
     @Override
-    public JavaExecSpec setIgnoreExitValue(boolean ignoreExitValue) {
-        this.ignoreExitValue = ignoreExitValue;
-        return this;
+    public Property<InputStream> getStandardInput() {
+        return standardInput;
     }
 
     @Override
-    public InputStream getStandardInput() {
-        return streamsSpec.getStandardInput();
+    public Property<OutputStream> getStandardOutput() {
+        return standardOutput;
     }
 
     @Override
-    public JavaExecSpec setStandardInput(InputStream standardInput) {
-        streamsSpec.setStandardInput(standardInput);
-        return this;
-    }
-
-    @Override
-    public OutputStream getStandardOutput() {
-        return streamsSpec.getStandardOutput();
-    }
-
-    @Override
-    public JavaExecSpec setStandardOutput(OutputStream standardOutput) {
-        streamsSpec.setStandardOutput(standardOutput);
-        return this;
-    }
-
-    @Override
-    public OutputStream getErrorOutput() {
-        return streamsSpec.getErrorOutput();
-    }
-
-    @Override
-    public JavaExecSpec setErrorOutput(OutputStream errorOutput) {
-        streamsSpec.setErrorOutput(errorOutput);
-        return this;
+    public Property<OutputStream> getErrorOutput() {
+        return errorOutput;
     }
 
     @Override

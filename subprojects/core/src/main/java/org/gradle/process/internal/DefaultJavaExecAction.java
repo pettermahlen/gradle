@@ -24,7 +24,6 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.process.BaseExecSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.JavaDebugOptions;
@@ -34,8 +33,6 @@ import org.gradle.process.ProcessForkOptions;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -44,20 +41,30 @@ import java.util.Map;
  *
  * TODO: We should remove setters and have abstract getters in Gradle 9.0 and configure builder in execute() method.
  */
-public class DefaultJavaExecAction implements JavaExecAction {
+public abstract class DefaultJavaExecAction implements JavaExecAction {
 
     private final JavaExecHandleBuilder javaExecHandleBuilder;
-    private boolean ignoreExitValue;
 
     public DefaultJavaExecAction(JavaExecHandleBuilder javaExecHandleBuilder) {
         this.javaExecHandleBuilder = javaExecHandleBuilder;
+        getIgnoreExitValue().convention(false);
     }
 
     @Override
     public ExecResult execute() {
+        if (getStandardInput().isPresent()) {
+            javaExecHandleBuilder.setStandardInput(getStandardInput().get());
+        }
+        if (getStandardOutput().isPresent()) {
+            javaExecHandleBuilder.setStandardOutput(getStandardOutput().get());
+        }
+        if (getErrorOutput().isPresent()) {
+            javaExecHandleBuilder.setErrorOutput(getErrorOutput().get());
+        }
+
         ExecHandle execHandle = javaExecHandleBuilder.build();
         ExecResult execResult = execHandle.start().waitForFinish();
-        if (!ignoreExitValue) {
+        if (!getIgnoreExitValue().get()) {
             execResult.assertNormalExitValue();
         }
         return execResult;
@@ -137,50 +144,6 @@ public class DefaultJavaExecAction implements JavaExecAction {
     @Override
     public ModularitySpec getModularity() {
         return javaExecHandleBuilder.getModularity();
-    }
-
-    @Override
-    public BaseExecSpec setIgnoreExitValue(boolean ignoreExitValue) {
-        this.ignoreExitValue = ignoreExitValue;
-        return this;
-    }
-
-    @Override
-    public boolean isIgnoreExitValue() {
-        return ignoreExitValue;
-    }
-
-    @Override
-    public BaseExecSpec setStandardInput(InputStream inputStream) {
-        javaExecHandleBuilder.setStandardInput(inputStream);
-        return this;
-    }
-
-    @Override
-    public InputStream getStandardInput() {
-        return javaExecHandleBuilder.getStandardInput();
-    }
-
-    @Override
-    public BaseExecSpec setStandardOutput(OutputStream outputStream) {
-        javaExecHandleBuilder.setStandardOutput(outputStream);
-        return this;
-    }
-
-    @Override
-    public OutputStream getStandardOutput() {
-        return javaExecHandleBuilder.getStandardOutput();
-    }
-
-    @Override
-    public BaseExecSpec setErrorOutput(OutputStream outputStream) {
-        javaExecHandleBuilder.setErrorOutput(outputStream);
-        return this;
-    }
-
-    @Override
-    public OutputStream getErrorOutput() {
-        return javaExecHandleBuilder.getErrorOutput();
     }
 
     @Override
