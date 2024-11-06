@@ -82,7 +82,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         @Nullable JavaModuleDetector javaModuleDetector,
         JavaForkOptionsInternal javaOptions
     ) {
-        super(fileResolver, executor, buildCancellationToken);
+        super(objectFactory, fileResolver, executor, buildCancellationToken);
         this.fileCollectionFactory = fileCollectionFactory;
         this.temporaryFileProvider = temporaryFileProvider;
         this.javaModuleDetector = javaModuleDetector;
@@ -326,7 +326,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         List<String> arguments = getAllArguments();
 
         // Try to shorten command-line if necessary
-        if (hasCommandLineExceedMaxLength(getExecutable(), arguments)) {
+        if (hasCommandLineExceedMaxLength(getExecutable().get(), arguments)) {
             try {
                 File pathingJarFile = writePathingJarFile(classpath);
                 ConfigurableFileCollection shortenedClasspath = fileCollectionFactory.configurableFiles();

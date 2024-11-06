@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider.sources.process;
 
+import org.gradle.api.provider.Property;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.ProcessForkOptions;
 
@@ -79,18 +80,8 @@ interface DelegatingBaseExecSpec extends BaseExecSpec {
     }
 
     @Override
-    default String getExecutable() {
+    default Property<String> getExecutable() {
         return getDelegate().getExecutable();
-    }
-
-    @Override
-    default void setExecutable(String executable) {
-        getDelegate().setExecutable(executable);
-    }
-
-    @Override
-    default void setExecutable(Object executable) {
-        getDelegate().setExecutable(executable);
     }
 
     @Override
