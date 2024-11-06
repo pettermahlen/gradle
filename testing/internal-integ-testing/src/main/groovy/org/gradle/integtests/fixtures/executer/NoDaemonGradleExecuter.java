@@ -196,14 +196,8 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
                 }
 
                 NativeServicesTestFixture.initialize();
-                DefaultExecHandleBuilder builder = new DefaultExecHandleBuilder(TestUtil.objectFactory(), TestFiles.pathToFileResolver(), Executors.newCachedThreadPool()) {
-                    @Override
-                    public File getWorkingDir() {
-                        // Override this, so that the working directory is not canonicalised. Some int tests require that
-                        // the working directory is not canonicalised
-                        return NoDaemonGradleExecuter.this.getWorkingDir();
-                    }
-                };
+                DefaultExecHandleBuilder builder = new DefaultExecHandleBuilder(TestUtil.objectFactory(), TestFiles.pathToFileResolver(), Executors.newCachedThreadPool());
+                builder.getWorkingDir().set(getWorkingDir());
 
                 // Clear the user's environment
                 builder.environment("GRADLE_HOME", "");
